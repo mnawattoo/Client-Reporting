@@ -1,0 +1,217 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Tenancy
+//
+// The product ships today as a single-agency deployment, but every table is
+// scoped by `agencyId` from day one. That is the only thing that makes this
+// resellable as SaaS later: promoting "one agency" to "many agencies signing
+// up" is then a billing + signup-flow change, not a data-model rewrite.
+// ---------------------------------------------------------------------------
+
+model Agency {
+  id             String   @id @default(cuid())
+  name           String
+  slug           String   @unique
+  logoUrl        String?
+  primaryColor   String   @default("#4F46E5")
+  secondaryColor String   @default("#111827")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  users   User[]
+  clients Client[]
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+model User {
+  id           String   @id @default(cuid())
+  agencyId     String
+  agency       Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         UserRole @default(MEMBER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  reportsCreated Report[] @relation("ReportCreatedBy")
+
+  @@index([agencyId])
+}
+
+enum ClientStatus {
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+model Client {
+  id                  String       @id @default(cuid())
+  agencyId            String
+  agency              Agency       @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  name                String
+  slug                String
+  logoUrl             String?
+  industry            String?
+  timezone            String       @default("UTC")
+  status              ClientStatus @default(ACTIVE)
+  primaryContactName  String?
+  primaryContactEmail String?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  integrations Integration[]
+  reports      Report[]
+  goals        Goal[]
+
+  @@unique([agencyId, slug])
+  @@index([agencyId])
+}
+
+enum Platform {
+  GOOGLE_ADS
+  GA4
+  GSC
+  GBP
+  META_ADS
+}
+
+enum IntegrationStatus {
+  PENDING
+  CONNECTED
+  ERROR
+  DISCONNECTED
+}
+
+// One row per (client, platform). Holds encrypted OAuth tokens and the
+// external account this client's data is pulled from.
+model Integration {
+  id                  String            @id @default(cuid())
+  clientId            String
+  client              Client            @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  platform            Platform
+  status              IntegrationStatus @default(PENDING)
+  externalAccountId   String?
+  externalAccountName String?
+  accessTokenEnc      String?
+  refreshTokenEnc     String?
+  tokenExpiresAt      DateTime?
+  scopes              String?
+  lastSyncedAt        DateTime?
+  lastError           String?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  snapshots MetricSnapshot[]
+
+  @@unique([clientId, platform])
+  @@index([clientId])
+}
+
+// Normalized monthly metrics pulled from a platform. `metrics` is a flat
+// JSON map of metricKey -> number so every connector can add fields without
+// a migration; report generation reads known keys per platform.
+model MetricSnapshot {
+  id            String      @id @default(cuid())
+  integrationId String
+  integration   Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  clientId      String
+  platform      Platform
+  periodStart   DateTime
+  periodEnd     DateTime
+  metrics       Json
+  raw           Json?
+  createdAt     DateTime    @default(now())
+
+  @@unique([integrationId, periodStart, periodEnd])
+  @@index([clientId, platform, periodStart])
+}
+
+enum ReportStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model Report {
+  id          String       @id @default(cuid())
+  agencyId    String
+  clientId    String
+  client      Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  title       String
+  periodStart DateTime
+  periodEnd   DateTime
+  status      ReportStatus @default(DRAFT)
+  summary     String?
+  createdById String?
+  createdBy   User?        @relation("ReportCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  publishedAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  sections   ReportSection[]
+  shareLinks ShareLink[]
+
+  @@unique([clientId, periodStart, periodEnd])
+  @@index([agencyId])
+  @@index([clientId])
+}
+
+// One section per channel (SEO, Google Ads, Facebook Ads, GBP, Website
+// Growth) plus optional custom sections. `order` controls display order,
+// `metrics`/`chartData` are precomputed at generation time so the public
+// report page never needs live API calls or DB joins beyond this table.
+model ReportSection {
+  id        String    @id @default(cuid())
+  reportId  String
+  report    Report    @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  platform  Platform?
+  title     String
+  order     Int
+  metrics   Json
+  chartData Json?
+  insights  String?
+
+  @@index([reportId])
+}
+
+model ShareLink {
+  id        String    @id @default(cuid())
+  reportId  String
+  report    Report    @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  token     String    @unique
+  expiresAt DateTime?
+  viewCount Int       @default(0)
+  createdAt DateTime  @default(now())
+
+  @@index([reportId])
+}
+
+// Optional KPI targets per client/platform/metric, used to show goal
+// progress ("target vs actual") in reports — a common client-reporting
+// best practice.
+model Goal {
+  id        String   @id @default(cuid())
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  platform  Platform
+  metricKey String
+  label     String
+  target    Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clientId])
+}
