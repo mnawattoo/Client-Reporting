@@ -92,10 +92,3 @@ export async function syncClientForPeriod(clientId: string, period: Period): Pro
   }
   return results;
 }
-
-export async function syncAllClientsForPeriod(period: Period): Promise<void> {
-  const clients = await prisma.client.findMany({ where: { status: "ACTIVE" }, select: { id: true } });
-  for (const client of clients) {
-    await syncClientForPeriod(client.id, period);
-  }
-}

@@ -143,16 +143,24 @@ login can access, so the agency picks the specific one that maps to this client.
 
 ## Monthly sync
 
-Trigger a sync of the previous calendar month for every active client from an
-external scheduler (cron, GitHub Actions, Vercel Cron, etc.) — there's no built-in
-scheduler in the app itself:
+`vercel.json` schedules `/api/sync` to run automatically on the 1st of every month
+via Vercel Cron. For every active client it: pulls fresh numbers from each connected
+channel, regenerates and publishes that client's report (minting a share link if one
+doesn't exist yet), then emails a summary with every client's share link to
+`REPORT_NOTIFICATION_EMAIL` (via Resend — set `RESEND_API_KEY`, otherwise the run
+completes but the email is skipped).
+
+Vercel automatically sends `Authorization: Bearer <value>` using any env var named
+exactly `CRON_SECRET`, so no extra wiring is needed beyond setting that variable.
+Not on Vercel? Trigger the same endpoint from any external scheduler instead:
 
 ```bash
 curl -X POST https://your-app/api/sync -H "Authorization: Bearer $CRON_SECRET"
 ```
 
 Agencies can also generate a report on demand from a client's page, which syncs
-that specific month first.
+that specific month first (this does not send the notification email — it's meant
+for one-off checks, not the monthly send-out).
 
 ## Architecture
 
@@ -206,10 +214,11 @@ To turn this into a multi-agency SaaS product:
 ## What's not implemented yet
 
 - Billing/subscriptions (explicitly deferred for this build)
-- Email delivery of reports (currently: share link only, sent manually)
+- Emailing the report directly to each client's `primaryContactEmail` — today the
+  monthly run emails a summary with every client's share link to your own
+  `REPORT_NOTIFICATION_EMAIL` inbox; forwarding straight to clients would be a small
+  extension of `notifyAgency()` in `src/server/reports/monthly.ts`.
 - A dedicated SEO rank-tracker integration — the "SEO" section currently reports
   Search Console data (clicks, impressions, CTR, position, top queries), which is
   the free/native signal Google provides; a paid rank tracker (SEMrush, Ahrefs, etc.)
   would need its own connector following the same pattern as `src/server/connectors/`.
-- Automated scheduling of the monthly sync (see [Monthly sync](#monthly-sync) — wire
-  up your own scheduler to hit `/api/sync`)
