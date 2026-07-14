@@ -26,5 +26,11 @@ export async function GET(req: NextRequest) {
     nonce: crypto.randomBytes(8).toString("hex"),
   });
 
-  return NextResponse.redirect(buildMetaAuthUrl(state));
+  const clientDetailUrl = new URL(`/dashboard/clients/${clientId}`, req.nextUrl.origin);
+  try {
+    return NextResponse.redirect(buildMetaAuthUrl(state));
+  } catch (e) {
+    clientDetailUrl.searchParams.set("integration_error", e instanceof Error ? e.message : "unknown_error");
+    return NextResponse.redirect(clientDetailUrl);
+  }
 }
