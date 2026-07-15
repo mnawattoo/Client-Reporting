@@ -40,21 +40,26 @@ export function IntegrationCard({
   const meta = PLATFORM_META[platform];
   const Icon = meta.icon;
   const [resources, setResources] = useState<{ id: string; label: string }[] | null>(null);
+  const [resourceError, setResourceError] = useState<string | null>(null);
   const [selected, setSelected] = useState(externalAccountId ?? "");
 
   const needsResourceSelection = status === "CONNECTED" && !externalAccountId;
-  const loadingResources = needsResourceSelection && resources === null;
+  const loadingResources = needsResourceSelection && resources === null && !resourceError;
 
   useEffect(() => {
     if (!needsResourceSelection) return;
     let cancelled = false;
     fetch(`/api/integrations/${platform}/resources?clientId=${clientId}`)
-      .then((r) => r.json())
+      .then(async (r) => {
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(data.error ?? `Request failed (${r.status})`);
+        return data;
+      })
       .then((data) => {
         if (!cancelled) setResources(data.resources ?? []);
       })
-      .catch(() => {
-        if (!cancelled) setResources([]);
+      .catch((e) => {
+        if (!cancelled) setResourceError(e instanceof Error ? e.message : "Failed to load accounts");
       });
     return () => {
       cancelled = true;
@@ -108,6 +113,8 @@ export function IntegrationCard({
             <input type="hidden" name="resourceLabel" value={resources?.find((r) => r.id === selected)?.label ?? ""} />
             {loadingResources ? (
               <p className="text-xs text-ink-muted">Loading accounts…</p>
+            ) : resourceError ? (
+              <p className="text-xs text-critical">{resourceError}</p>
             ) : resources && resources.length > 0 ? (
               <>
                 <Select name="resourceId" value={selected} onChange={(e) => setSelected(e.target.value)} required>
