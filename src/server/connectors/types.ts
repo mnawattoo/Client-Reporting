@@ -12,6 +12,15 @@ export interface NormalizedMetrics {
   raw?: Record<string, unknown>;
 }
 
+// A single row in a "top 10" breakdown table (top pages, top queries, top
+// locations, ...). `secondary` is an optional second numeric column
+// (e.g. impressions alongside clicks).
+export interface TopListRow {
+  label: string;
+  value: number;
+  secondary?: number;
+}
+
 // Canonical metric keys per platform. Connectors must populate these so
 // report generation and MoM/YoY deltas can rely on a stable shape.
 export const METRIC_KEYS = {

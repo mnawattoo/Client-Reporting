@@ -95,7 +95,27 @@ async function main() {
           periodStart,
           periodEnd,
           metrics: metricsFor(platform, monthIndex),
-          raw: platform === "GSC" ? { topQueries: [{ query: "acme co reviews", clicks: 210, impressions: 4100 }] } : undefined,
+          raw:
+            platform === "GSC"
+              ? {
+                  topQueries: [
+                    { label: "acme co reviews", value: 210, secondary: 4100 },
+                    { label: "acme co pricing", value: 96, secondary: 2200 },
+                  ],
+                  topPages: [{ label: "/pricing", value: 140, secondary: 3100 }],
+                }
+              : platform === "GA4"
+                ? {
+                    topPages: [
+                      { label: "/", value: 980 },
+                      { label: "/pricing", value: 410 },
+                    ],
+                    topLocations: [
+                      { label: "United States", value: 720 },
+                      { label: "Canada", value: 145 },
+                    ],
+                  }
+                : undefined,
         },
         update: { metrics: metricsFor(platform, monthIndex) },
       });

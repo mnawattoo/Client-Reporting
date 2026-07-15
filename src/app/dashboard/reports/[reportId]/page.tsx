@@ -11,6 +11,7 @@ import { PLATFORM_META } from "@/lib/platforms";
 import { METRIC_DISPLAY, formatMetricValue } from "@/lib/metric-display";
 import { StatTile } from "@/components/dashboard/stat-tile";
 import { TrendChart } from "@/components/charts/trend-chart";
+import { TopListTable, type TopList } from "@/components/report/report-view";
 import { publishReport, updateReportSummary, updateSectionInsights } from "@/server/actions/reports";
 import { Download } from "lucide-react";
 
@@ -87,7 +88,11 @@ export default async function ReportDetailPage({ params }: { params: Promise<{ r
             current: Record<string, number>;
             deltas: Record<string, { mom: number | null; yoy: number | null }>;
           };
-          const chartData = section.chartData as { primaryMetricKey: string; series: { x: string; y: number }[] } | null;
+          const chartData = section.chartData as {
+            primaryMetricKey: string;
+            series: { x: string; y: number }[];
+            topLists?: TopList[];
+          } | null;
           const Icon = meta?.icon;
 
           return (
@@ -123,6 +128,14 @@ export default async function ReportDetailPage({ params }: { params: Promise<{ r
                     ]}
                     height={200}
                   />
+                )}
+
+                {chartData?.topLists && chartData.topLists.length > 0 && (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {chartData.topLists.map((list) => (
+                      <TopListTable key={list.label} list={list} />
+                    ))}
+                  </div>
                 )}
 
                 <div>

@@ -4,6 +4,22 @@ import { formatDeltaPercent } from "@/lib/utils";
 import { METRIC_DISPLAY } from "@/lib/metric-display";
 import { PLATFORM_META, PLATFORM_ORDER } from "@/lib/platforms";
 import type { Platform } from "@prisma/client";
+import type { TopListRow } from "@/server/connectors/types";
+
+// Which "top 10" breakdown tables (if present in a snapshot's raw payload)
+// to surface for each platform, and how to label them.
+const TOP_LIST_CONFIG: Partial<
+  Record<Platform, { rawKey: string; label: string; valueLabel: string; secondaryLabel?: string }[]>
+> = {
+  GA4: [
+    { rawKey: "topPages", label: "Top Pages", valueLabel: "Views" },
+    { rawKey: "topLocations", label: "Top Locations", valueLabel: "Sessions" },
+  ],
+  GSC: [
+    { rawKey: "topQueries", label: "Top Keywords", valueLabel: "Clicks", secondaryLabel: "Impressions" },
+    { rawKey: "topPages", label: "Top Pages", valueLabel: "Clicks", secondaryLabel: "Impressions" },
+  ],
+};
 
 interface GenerateReportInput {
   clientId: string;
@@ -99,15 +115,20 @@ export async function generateReport({ clientId, periodStart, periodEnd, created
     // Current month is always the freshest point, in case it wasn't part of trailing calc precision issues
     chartSeries[chartSeries.length - 1] = { x: format(periodStart, "MMM"), y: currentMetrics[primaryMetric.key] ?? 0 };
 
+    const rawData = (current.raw as Record<string, TopListRow[]> | null) ?? {};
+    const topLists = (TOP_LIST_CONFIG[platform] ?? [])
+      .map((cfg) => ({ ...cfg, rows: rawData[cfg.rawKey] ?? [] }))
+      .filter((list) => list.rows.length > 0);
+
+    const topQuery = rawData.topQueries?.[0];
+
     sections.push({
       platform,
       title: PLATFORM_META[platform].label,
       order: PLATFORM_ORDER.indexOf(platform),
       metrics: { current: currentMetrics, previous: prevMetrics, yoy: yoyMetrics, deltas },
-      chartData: { primaryMetricKey: primaryMetric.key, series: chartSeries },
-      insights: (current.raw as Record<string, unknown> | null)?.topQueries
-        ? `Top query: ${(((current.raw as Record<string, unknown>).topQueries as { query: string }[])[0]?.query ?? "n/a")}`
-        : "",
+      chartData: { primaryMetricKey: primaryMetric.key, series: chartSeries, topLists },
+      insights: topQuery ? `Top query: ${topQuery.label}` : "",
     });
   }
 

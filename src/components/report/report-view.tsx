@@ -5,6 +5,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { StatTile } from "@/components/dashboard/stat-tile";
 import { TrendChart } from "@/components/charts/trend-chart";
 import type { Platform } from "@prisma/client";
+import type { TopListRow } from "@/server/connectors/types";
+
+export interface TopList {
+  label: string;
+  valueLabel: string;
+  secondaryLabel?: string;
+  rows: TopListRow[];
+}
 
 export interface ReportViewData {
   clientName: string;
@@ -24,8 +32,37 @@ export interface ReportViewData {
       current: Record<string, number>;
       deltas: Record<string, { mom: number | null; yoy: number | null }>;
     };
-    chartData: { primaryMetricKey: string; series: { x: string; y: number }[] } | null;
+    chartData: { primaryMetricKey: string; series: { x: string; y: number }[]; topLists?: TopList[] } | null;
   }[];
+}
+
+export function TopListTable({ list }: { list: TopList }) {
+  return (
+    <div>
+      <p className="mb-1.5 text-xs font-medium text-ink-secondary">{list.label}</p>
+      <div className="overflow-hidden rounded-lg border border-gridline">
+        <table className="w-full text-sm">
+          <tbody>
+            {list.rows.map((row, i) => (
+              <tr key={i} className="border-b border-gridline last:border-0">
+                <td className="truncate px-3 py-1.5 text-ink-secondary" title={row.label}>
+                  {row.label}
+                </td>
+                <td className="whitespace-nowrap px-3 py-1.5 text-right font-medium text-ink-primary">
+                  {row.value.toLocaleString()} <span className="font-normal text-ink-muted">{list.valueLabel}</span>
+                </td>
+                {list.secondaryLabel && (
+                  <td className="whitespace-nowrap px-3 py-1.5 text-right text-ink-muted">
+                    {(row.secondary ?? 0).toLocaleString()} {list.secondaryLabel}
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }
 
 export function ReportView({ data }: { data: ReportViewData }) {
@@ -103,6 +140,14 @@ export function ReportView({ data }: { data: ReportViewData }) {
                   ]}
                   height={180}
                 />
+              )}
+
+              {section.chartData?.topLists && section.chartData.topLists.length > 0 && (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {section.chartData.topLists.map((list) => (
+                    <TopListTable key={list.label} list={list} />
+                  ))}
+                </div>
               )}
 
               {section.insights && (
