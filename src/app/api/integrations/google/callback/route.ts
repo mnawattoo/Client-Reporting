@@ -40,8 +40,10 @@ export async function GET(req: NextRequest) {
         refreshTokenEnc: tokens.refreshToken ? encryptToken(tokens.refreshToken) : null,
         tokenExpiresAt: tokens.expiresAt,
         scopes: tokens.scope,
-        externalAccountId: tokens.externalAccountId,
-        externalAccountName: tokens.externalAccountName,
+        // externalAccountId/Name are intentionally left unset here — they
+        // identify the *selected resource* (a GA4 property, Ads customer,
+        // etc.), set later via selectIntegrationResource(). Leaving them
+        // null is what makes the resource-picker UI show up after connecting.
       },
       update: {
         status: "CONNECTED",
@@ -51,8 +53,9 @@ export async function GET(req: NextRequest) {
         ...(tokens.refreshToken ? { refreshTokenEnc: encryptToken(tokens.refreshToken) } : {}),
         tokenExpiresAt: tokens.expiresAt,
         scopes: tokens.scope,
-        externalAccountId: tokens.externalAccountId,
-        externalAccountName: tokens.externalAccountName,
+        // externalAccountId/Name deliberately omitted — don't clobber a
+        // previously selected resource when an existing connection just
+        // refreshes its tokens.
         lastError: null,
       },
     });

@@ -39,16 +39,19 @@ export async function GET(req: NextRequest) {
         accessTokenEnc: encryptToken(tokens.accessToken),
         tokenExpiresAt: tokens.expiresAt,
         scopes: tokens.scope,
-        externalAccountId: tokens.externalAccountId,
-        externalAccountName: tokens.externalAccountName,
+        // externalAccountId/Name are intentionally left unset here — they
+        // identify the *selected ad account*, set later via
+        // selectIntegrationResource(). Leaving them null is what makes the
+        // resource-picker UI show up after connecting.
       },
       update: {
         status: "CONNECTED",
         accessTokenEnc: encryptToken(tokens.accessToken),
         tokenExpiresAt: tokens.expiresAt,
         scopes: tokens.scope,
-        externalAccountId: tokens.externalAccountId,
-        externalAccountName: tokens.externalAccountName,
+        // externalAccountId/Name deliberately omitted — don't clobber a
+        // previously selected ad account when an existing connection just
+        // refreshes its tokens.
         lastError: null,
       },
     });

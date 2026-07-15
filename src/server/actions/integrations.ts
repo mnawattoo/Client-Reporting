@@ -43,6 +43,10 @@ export async function disconnectIntegration(clientId: string, platform: string) 
       accessTokenEnc: null,
       refreshTokenEnc: null,
       tokenExpiresAt: null,
+      // Clear the selected resource too, so reconnecting starts clean and
+      // shows the resource picker again rather than reusing a stale pick.
+      externalAccountId: null,
+      externalAccountName: null,
       lastError: null,
     },
   });
