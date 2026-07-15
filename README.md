@@ -141,6 +141,43 @@ login can access, so the agency picks the specific one that maps to this client.
 > on it in production, particularly Google Ads (query shape) and Business Profile
 > Performance (metric enum names change occasionally).
 
+## Alternative: Google Ads / GBP / Meta Ads via Make.com
+
+Direct OAuth to these three platforms requires Google/Meta app approval (Google
+Ads "Basic Access," the Business Profile API access request, Meta's Marketing API
+app review) that can take days to weeks. As a way to get real data flowing before
+that approval lands, `POST /api/integrations/make-webhook` accepts metrics for
+`GOOGLE_ADS`, `GBP`, and `META_ADS` pushed from a Make.com scenario — Make already
+has pre-approved access to all three, so connecting through it sidesteps the
+review queue entirely. GA4 and Search Console are unaffected and keep using direct
+OAuth as described above.
+
+Set `MAKE_WEBHOOK_SECRET`, then have a Make scenario `POST` here on whatever
+schedule you want, per client/platform/month:
+
+```bash
+curl -X POST https://your-app/api/integrations/make-webhook \
+  -H "Authorization: Bearer $MAKE_WEBHOOK_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientId": "clxxxxx",
+    "platform": "GOOGLE_ADS",
+    "periodStart": "2026-06-01",
+    "periodEnd": "2026-06-30",
+    "externalAccountId": "123-456-7890",
+    "externalAccountName": "Acme Co — Search",
+    "metrics": { "impressions": 12000, "clicks": 340, "costUsd": 890.50, "conversions": 12, "conversionValue": 4200, "ctr": 2.83, "avgCpc": 2.62, "roas": 4.72 },
+    "raw": { "topSearchTerms": [{ "label": "acme co", "value": 88 }] }
+  }'
+```
+
+`metrics` keys should match the platform's keys in `METRIC_KEYS`
+(`src/server/connectors/types.ts`). `externalAccountId`/`externalAccountName` are
+optional but should be sent at least once — without them, report generation skips
+the platform (it only includes integrations with a selected account). Once real
+Google/Meta approval comes through, reconnecting via "Connect Google Ads" etc. in
+the dashboard switches that platform back to direct OAuth without any code changes.
+
 ## Monthly sync
 
 `vercel.json` schedules `/api/sync` to run automatically on the 1st of every month

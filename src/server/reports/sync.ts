@@ -78,7 +78,15 @@ export interface SyncResult {
 
 export async function syncClientForPeriod(clientId: string, period: Period): Promise<SyncResult[]> {
   const integrations = await prisma.integration.findMany({
-    where: { clientId, status: { in: ["CONNECTED", "ERROR"] }, externalAccountId: { not: null } },
+    where: {
+      clientId,
+      status: { in: ["CONNECTED", "ERROR"] },
+      externalAccountId: { not: null },
+      // Integrations fed by the Make.com webhook (make-webhook/route.ts)
+      // never get an OAuth token — skip them here so this OAuth-only sync
+      // path doesn't stomp their status to ERROR every month.
+      accessTokenEnc: { not: null },
+    },
   });
 
   const results: SyncResult[] = [];
