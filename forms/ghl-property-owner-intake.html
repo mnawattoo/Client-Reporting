@@ -1,32 +1,19 @@
 <!--
-  SETUP — do this in the GHL Form Builder before pasting this block:
+  SETUP:
+  1. In GHL, create a Workflow with an "Inbound Webhook" trigger (or use an
+     existing one) and copy its URL.
+  2. Paste that URL as GHL_WEBHOOK_URL near the top of the <script> below.
+  3. In the Form Builder, drag a single "Custom HTML" field onto an
+     otherwise empty form and paste this entire file into it. No other
+     native fields (First Name, Email, etc.) are needed — everything is
+     self-contained here, including its own Submit button.
+  4. In the Workflow, map the incoming webhook keys (first_name, last_name,
+     email, phone, property_location, development_name, unit_number,
+     bedrooms, property_type, current_situation, current_nightly_rate,
+     additional_notes, privacy_consent, whatsapp_optin) to Contact fields /
+     Custom Fields as needed.
 
-  1. Add these NATIVE fields to the form (GHL's own field types), same as
-     you would for any form: First Name, Last Name, Email, Phone (use this
-     for "WhatsApp number"). Do not recreate them in HTML below — GHL only
-     submits data it collects through its own native/recognized fields, so
-     these must stay native for the contact record to populate correctly.
-
-  2. For every other field below, add a HIDDEN field bound to a Custom
-     Field in your GHL account (Form Builder > Add Field > Custom Field,
-     set to Hidden). Create one for each of:
-       property_location, development_name, unit_number, bedrooms,
-       property_type, current_situation, current_nightly_rate,
-       additional_notes, whatsapp_optin
-     (and privacy_consent too, unless you're using GHL's own built-in
-     consent/terms checkbox under Form Settings instead of the one below).
-
-  3. Save the form, open it in Preview, right-click each hidden input and
-     "Inspect" to find its generated `id` attribute (GHL assigns these
-     automatically, e.g. something like "hidden_abc123"). Copy each id
-     into FIELD_ID_MAP in the script below — this is what lets the visible
-     dropdowns/text fields here hand their values off to GHL's own
-     submission.
-
-  4. Drag one "Custom HTML" field into the form (placed anywhere above the
-     Submit button) and paste this entire file into it.
-
-  CONFIRM WITH CLIENT (still open from the original spec):
+  STILL OPEN FROM THE ORIGINAL SPEC — confirm with client before going live:
    - "Current situation" is called a segment driver in the spec but its
      option list wasn't included — the options below are a placeholder
      guess; replace them since this field likely drives workflow branching.
@@ -34,46 +21,50 @@
      the wording below is placeholder legal text, not approved copy.
 -->
 <style>
-  #pi-extra-fields * { box-sizing: border-box; }
+  #pi-form-wrapper * { box-sizing: border-box; }
 
-  #pi-extra-fields {
+  #pi-form-wrapper {
+    max-width: 640px;
+    margin: 0 auto;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     color: #1f2933;
   }
 
-  #pi-extra-fields .pi-field {
+  #pi-form-wrapper .pi-field {
     margin-bottom: 18px;
   }
 
-  #pi-extra-fields .pi-row {
+  #pi-form-wrapper .pi-row {
     display: flex;
     gap: 16px;
   }
 
-  #pi-extra-fields .pi-row .pi-field {
+  #pi-form-wrapper .pi-row .pi-field {
     flex: 1 1 0;
     min-width: 0;
   }
 
-  #pi-extra-fields .pi-field label {
+  #pi-form-wrapper .pi-field label {
     display: block;
     font-size: 13px;
     font-weight: 600;
     margin-bottom: 6px;
   }
 
-  #pi-extra-fields .pi-optional {
+  #pi-form-wrapper .pi-optional {
     font-weight: 400;
     color: #6b7280;
   }
 
-  #pi-extra-fields .pi-required {
+  #pi-form-wrapper .pi-required {
     color: #c0392b;
   }
 
-  #pi-extra-fields input[type="text"],
-  #pi-extra-fields select,
-  #pi-extra-fields textarea {
+  #pi-form-wrapper input[type="text"],
+  #pi-form-wrapper input[type="email"],
+  #pi-form-wrapper input[type="tel"],
+  #pi-form-wrapper select,
+  #pi-form-wrapper textarea {
     width: 100%;
     padding: 11px 12px;
     font-size: 15px;
@@ -84,58 +75,122 @@
     font-family: inherit;
   }
 
-  #pi-extra-fields textarea {
+  #pi-form-wrapper textarea {
     resize: vertical;
     min-height: 90px;
   }
 
-  #pi-extra-fields input.pi-invalid,
-  #pi-extra-fields select.pi-invalid {
+  #pi-form-wrapper input.pi-invalid,
+  #pi-form-wrapper select.pi-invalid {
     border-color: #c0392b;
   }
 
-  #pi-extra-fields .pi-hint {
+  #pi-form-wrapper .pi-hint {
     margin-top: 5px;
     font-size: 12.5px;
     color: #6b7280;
   }
 
-  #pi-extra-fields .pi-error-msg {
+  #pi-form-wrapper .pi-error-msg {
     margin-top: 5px;
     font-size: 12.5px;
     color: #c0392b;
     display: none;
   }
 
-  #pi-extra-fields .pi-field.pi-has-error .pi-error-msg {
+  #pi-form-wrapper .pi-field.pi-has-error .pi-error-msg {
     display: block;
   }
 
-  #pi-extra-fields .pi-checkbox-field {
+  #pi-form-wrapper .pi-checkbox-field {
     display: flex;
     align-items: flex-start;
     gap: 10px;
     margin-bottom: 6px;
   }
 
-  #pi-extra-fields .pi-checkbox-field input[type="checkbox"] {
+  #pi-form-wrapper .pi-checkbox-field input[type="checkbox"] {
     margin-top: 3px;
     width: 17px;
     height: 17px;
     flex: 0 0 auto;
   }
 
-  #pi-extra-fields .pi-checkbox-field label {
+  #pi-form-wrapper .pi-checkbox-field label {
     font-size: 13.5px;
     line-height: 1.5;
   }
 
+  #pi-submit-btn {
+    width: 100%;
+    padding: 14px 20px;
+    margin-top: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    background: #e07a5f;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  #pi-submit-btn:hover { background: #d1684d; }
+  #pi-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  #pi-form-status {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    display: none;
+  }
+
+  #pi-form-status.pi-status-success {
+    display: block;
+    background: #e7f5ec;
+    color: #1e6b3c;
+    border: 1px solid #bfe3cc;
+  }
+
+  #pi-form-status.pi-status-error {
+    display: block;
+    background: #fdecea;
+    color: #c0392b;
+    border: 1px solid #f5c6c1;
+  }
+
   @media (max-width: 480px) {
-    #pi-extra-fields .pi-row { flex-direction: column; gap: 0; }
+    #pi-form-wrapper .pi-row { flex-direction: column; gap: 0; }
   }
 </style>
 
-<div id="pi-extra-fields">
+<div id="pi-form-wrapper">
+
+  <div class="pi-row">
+    <div class="pi-field">
+      <label for="pi-first-name">First name <span class="pi-required">*</span></label>
+      <input type="text" id="pi-first-name" autocomplete="given-name" data-required="true">
+      <div class="pi-error-msg">Please enter your first name.</div>
+    </div>
+    <div class="pi-field">
+      <label for="pi-last-name">Last name <span class="pi-required">*</span></label>
+      <input type="text" id="pi-last-name" autocomplete="family-name" data-required="true">
+      <div class="pi-error-msg">Please enter your last name.</div>
+    </div>
+  </div>
+
+  <div class="pi-field">
+    <label for="pi-email">Email <span class="pi-required">*</span></label>
+    <input type="email" id="pi-email" autocomplete="email" data-required="true">
+    <div class="pi-error-msg">Please enter a valid email address.</div>
+  </div>
+
+  <div class="pi-field">
+    <label for="pi-whatsapp">WhatsApp number <span class="pi-required">*</span></label>
+    <input type="tel" id="pi-whatsapp" autocomplete="tel" placeholder="+1 809 555 5555" data-required="true">
+    <div class="pi-hint">Include country code.</div>
+    <div class="pi-error-msg">Please enter a valid WhatsApp number, including country code.</div>
+  </div>
 
   <div class="pi-field">
     <label for="pi-property-location">Property location <span class="pi-required">*</span></label>
@@ -264,31 +319,28 @@
     </label>
   </div>
 
+  <button type="button" id="pi-submit-btn">Submit</button>
+  <div id="pi-form-status"></div>
 </div>
 
 <script>
 (function () {
-  // Fill these in with the hidden Custom Field input `id`s from step 3
-  // above. Anything left blank is skipped (its value never reaches GHL).
-  var FIELD_ID_MAP = {
-    property_location: "",
-    development_name: "",
-    unit_number: "",
-    bedrooms: "",
-    property_type: "",
-    current_situation: "",
-    current_nightly_rate: "",
-    additional_notes: "",
-    privacy_consent: "",
-    whatsapp_optin: ""
-  };
+  // Replace with your GHL Inbound Webhook URL (Workflows > Inbound Webhook trigger).
+  var GHL_WEBHOOK_URL = "https://services.leadconnectorhq.com/hooks/REPLACE_WITH_YOUR_WEBHOOK_ID";
 
-  var wrapper = document.getElementById("pi-extra-fields");
-  var form = wrapper.closest("form");
+  var wrapper = document.getElementById("pi-form-wrapper");
+  var statusEl = document.getElementById("pi-form-status");
+  var submitBtn = document.getElementById("pi-submit-btn");
   var consentField = document.getElementById("pi-consent");
   var consentErrorWrapper = document.getElementById("pi-consent-error").closest(".pi-field");
 
-  var visibleFields = {
+  var whatsappPattern = /^\+?[0-9\s\-()]{7,20}$/;
+
+  var fields = {
+    first_name: document.getElementById("pi-first-name"),
+    last_name: document.getElementById("pi-last-name"),
+    email: document.getElementById("pi-email"),
+    phone: document.getElementById("pi-whatsapp"),
     property_location: document.getElementById("pi-property-location"),
     development_name: document.getElementById("pi-development"),
     unit_number: document.getElementById("pi-unit"),
@@ -311,6 +363,12 @@
 
     wrapper.querySelectorAll("[data-required='true']").forEach(function (field) {
       var fieldValid = field.value.trim() !== "";
+      if (fieldValid && field.id === "pi-email") {
+        fieldValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(field.value.trim());
+      }
+      if (fieldValid && field.id === "pi-whatsapp") {
+        fieldValid = whatsappPattern.test(field.value.trim());
+      }
       setFieldError(field, !fieldValid);
       if (!fieldValid) valid = false;
     });
@@ -322,40 +380,50 @@
     return valid;
   }
 
-  function pushToHiddenField(id, value) {
-    if (!id) return;
-    var hiddenInput = document.getElementById(id);
-    if (!hiddenInput) return;
-    hiddenInput.value = value;
-    hiddenInput.dispatchEvent(new Event("input", { bubbles: true }));
-    hiddenInput.dispatchEvent(new Event("change", { bubbles: true }));
-  }
+  submitBtn.addEventListener("click", function () {
+    statusEl.className = "";
+    statusEl.textContent = "";
 
-  function syncHiddenFields() {
-    Object.keys(visibleFields).forEach(function (key) {
-      pushToHiddenField(FIELD_ID_MAP[key], visibleFields[key].value.trim());
+    if (!validate()) {
+      statusEl.className = "pi-status-error";
+      statusEl.textContent = "Please fix the highlighted fields and try again.";
+      return;
+    }
+
+    var payload = {};
+    Object.keys(fields).forEach(function (key) {
+      payload[key] = fields[key].value.trim();
     });
-    pushToHiddenField(FIELD_ID_MAP.privacy_consent, consentField.checked ? "yes" : "no");
-    pushToHiddenField(FIELD_ID_MAP.whatsapp_optin, document.getElementById("pi-whatsapp-optin").checked ? "yes" : "no");
-  }
+    payload.privacy_consent = consentField.checked ? "yes" : "no";
+    payload.whatsapp_optin = document.getElementById("pi-whatsapp-optin").checked ? "yes" : "no";
 
-  if (form) {
-    // Capture-phase listener on document runs before GHL's own submit
-    // handler on the form, so an invalid state can block it outright.
-    document.addEventListener("submit", function (e) {
-      if (e.target !== form) return;
-      if (!validate()) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        return;
-      }
-      syncHiddenFields();
-    }, true);
-  }
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Submitting...";
 
-  wrapper.addEventListener("change", syncHiddenFields);
-  wrapper.addEventListener("input", syncHiddenFields);
-  consentField.addEventListener("change", syncHiddenFields);
-  document.getElementById("pi-whatsapp-optin").addEventListener("change", syncHiddenFields);
+    fetch(GHL_WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    })
+      .then(function (res) {
+        if (!res.ok) throw new Error("Request failed");
+        wrapper.querySelectorAll("input[type='text'], input[type='email'], input[type='tel'], select, textarea").forEach(function (el) {
+          el.value = "";
+        });
+        wrapper.querySelectorAll("input[type='checkbox']").forEach(function (el) {
+          el.checked = false;
+        });
+        statusEl.className = "pi-status-success";
+        statusEl.textContent = "Thanks! We've received your details and will be in touch shortly.";
+      })
+      .catch(function () {
+        statusEl.className = "pi-status-error";
+        statusEl.textContent = "Something went wrong submitting the form. Please try again or contact us directly.";
+      })
+      .finally(function () {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Submit";
+      });
+  });
 })();
 </script>
