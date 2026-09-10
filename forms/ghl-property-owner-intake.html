@@ -1,416 +1,316 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Property Owner Intake Form</title>
+<!--
+  SETUP — do this in the GHL Form Builder before pasting this block:
+
+  1. Add these NATIVE fields to the form (GHL's own field types), same as
+     you would for any form: First Name, Last Name, Email, Phone (use this
+     for "WhatsApp number"). Do not recreate them in HTML below — GHL only
+     submits data it collects through its own native/recognized fields, so
+     these must stay native for the contact record to populate correctly.
+
+  2. For every other field below, add a HIDDEN field bound to a Custom
+     Field in your GHL account (Form Builder > Add Field > Custom Field,
+     set to Hidden). Create one for each of:
+       property_location, development_name, unit_number, bedrooms,
+       property_type, current_situation, current_nightly_rate,
+       additional_notes, whatsapp_optin
+     (and privacy_consent too, unless you're using GHL's own built-in
+     consent/terms checkbox under Form Settings instead of the one below).
+
+  3. Save the form, open it in Preview, right-click each hidden input and
+     "Inspect" to find its generated `id` attribute (GHL assigns these
+     automatically, e.g. something like "hidden_abc123"). Copy each id
+     into FIELD_ID_MAP in the script below — this is what lets the visible
+     dropdowns/text fields here hand their values off to GHL's own
+     submission.
+
+  4. Drag one "Custom HTML" field into the form (placed anywhere above the
+     Submit button) and paste this entire file into it.
+
+  CONFIRM WITH CLIENT (still open from the original spec):
+   - "Current situation" is called a segment driver in the spec but its
+     option list wasn't included — the options below are a placeholder
+     guess; replace them since this field likely drives workflow branching.
+   - The exact §3 consent / WhatsApp opt-in copy wasn't provided either —
+     the wording below is placeholder legal text, not approved copy.
+-->
 <style>
-  :root {
-    --pi-primary: #0f4c5c;
-    --pi-primary-dark: #0a3540;
-    --pi-accent: #e07a5f;
-    --pi-text: #1f2933;
-    --pi-muted: #6b7280;
-    --pi-border: #d7dce1;
-    --pi-bg: #f7f8fa;
-    --pi-error: #c0392b;
-    --pi-radius: 8px;
-  }
+  #pi-extra-fields * { box-sizing: border-box; }
 
-  #pi-form-wrapper * { box-sizing: border-box; }
-
-  #pi-form-wrapper {
-    max-width: 640px;
-    margin: 0 auto;
-    padding: 32px 24px;
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.08), 0 1px 2px rgba(16, 24, 40, 0.06);
+  #pi-extra-fields {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    color: var(--pi-text);
+    color: #1f2933;
   }
 
-  #pi-form-wrapper h2 {
-    margin: 0 0 6px;
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--pi-primary-dark);
-  }
-
-  #pi-form-wrapper .pi-subtitle {
-    margin: 0 0 24px;
-    font-size: 14px;
-    color: var(--pi-muted);
-    line-height: 1.5;
-  }
-
-  .pi-field {
+  #pi-extra-fields .pi-field {
     margin-bottom: 18px;
   }
 
-  .pi-row {
+  #pi-extra-fields .pi-row {
     display: flex;
     gap: 16px;
   }
 
-  .pi-row .pi-field {
+  #pi-extra-fields .pi-row .pi-field {
     flex: 1 1 0;
     min-width: 0;
   }
 
-  .pi-field label {
+  #pi-extra-fields .pi-field label {
     display: block;
     font-size: 13px;
     font-weight: 600;
     margin-bottom: 6px;
-    color: var(--pi-text);
   }
 
-  .pi-field .pi-optional {
+  #pi-extra-fields .pi-optional {
     font-weight: 400;
-    color: var(--pi-muted);
+    color: #6b7280;
   }
 
-  .pi-required {
-    color: var(--pi-error);
+  #pi-extra-fields .pi-required {
+    color: #c0392b;
   }
 
-  .pi-field input[type="text"],
-  .pi-field input[type="email"],
-  .pi-field input[type="tel"],
-  .pi-field select,
-  .pi-field textarea {
+  #pi-extra-fields input[type="text"],
+  #pi-extra-fields select,
+  #pi-extra-fields textarea {
     width: 100%;
     padding: 11px 12px;
     font-size: 15px;
-    border: 1px solid var(--pi-border);
-    border-radius: var(--pi-radius);
+    border: 1px solid #d7dce1;
+    border-radius: 8px;
     background: #fff;
-    color: var(--pi-text);
+    color: #1f2933;
     font-family: inherit;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
 
-  .pi-field textarea {
+  #pi-extra-fields textarea {
     resize: vertical;
     min-height: 90px;
   }
 
-  .pi-field input:focus,
-  .pi-field select:focus,
-  .pi-field textarea:focus {
-    outline: none;
-    border-color: var(--pi-primary);
-    box-shadow: 0 0 0 3px rgba(15, 76, 92, 0.12);
+  #pi-extra-fields input.pi-invalid,
+  #pi-extra-fields select.pi-invalid {
+    border-color: #c0392b;
   }
 
-  .pi-field input.pi-invalid,
-  .pi-field select.pi-invalid,
-  .pi-field textarea.pi-invalid {
-    border-color: var(--pi-error);
-  }
-
-  .pi-hint {
+  #pi-extra-fields .pi-hint {
     margin-top: 5px;
     font-size: 12.5px;
-    color: var(--pi-muted);
+    color: #6b7280;
   }
 
-  .pi-error-msg {
+  #pi-extra-fields .pi-error-msg {
     margin-top: 5px;
     font-size: 12.5px;
-    color: var(--pi-error);
+    color: #c0392b;
     display: none;
   }
 
-  .pi-field.pi-has-error .pi-error-msg {
+  #pi-extra-fields .pi-field.pi-has-error .pi-error-msg {
     display: block;
   }
 
-  .pi-checkbox-field {
+  #pi-extra-fields .pi-checkbox-field {
     display: flex;
     align-items: flex-start;
     gap: 10px;
-    margin-bottom: 14px;
+    margin-bottom: 6px;
   }
 
-  .pi-checkbox-field input[type="checkbox"] {
+  #pi-extra-fields .pi-checkbox-field input[type="checkbox"] {
     margin-top: 3px;
     width: 17px;
     height: 17px;
     flex: 0 0 auto;
-    accent-color: var(--pi-primary);
   }
 
-  .pi-checkbox-field label {
+  #pi-extra-fields .pi-checkbox-field label {
     font-size: 13.5px;
     line-height: 1.5;
-    color: var(--pi-text);
-  }
-
-  .pi-checkbox-field a {
-    color: var(--pi-primary);
-  }
-
-  #pi-submit-btn {
-    width: 100%;
-    padding: 14px 20px;
-    margin-top: 8px;
-    font-size: 16px;
-    font-weight: 700;
-    color: #fff;
-    background: var(--pi-accent);
-    border: none;
-    border-radius: var(--pi-radius);
-    cursor: pointer;
-    transition: background 0.15s ease, opacity 0.15s ease;
-  }
-
-  #pi-submit-btn:hover { background: #d1684d; }
-  #pi-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
-  #pi-form-status {
-    margin-top: 16px;
-    padding: 12px 14px;
-    border-radius: var(--pi-radius);
-    font-size: 14px;
-    display: none;
-  }
-
-  #pi-form-status.pi-status-success {
-    display: block;
-    background: #e7f5ec;
-    color: #1e6b3c;
-    border: 1px solid #bfe3cc;
-  }
-
-  #pi-form-status.pi-status-error {
-    display: block;
-    background: #fdecea;
-    color: var(--pi-error);
-    border: 1px solid #f5c6c1;
   }
 
   @media (max-width: 480px) {
-    #pi-form-wrapper { padding: 24px 16px; border-radius: 0; }
-    .pi-row { flex-direction: column; gap: 0; }
+    #pi-extra-fields .pi-row { flex-direction: column; gap: 0; }
   }
 </style>
-</head>
-<body>
 
-<div id="pi-form-wrapper">
-  <h2>Tell us about your property</h2>
-  <p class="pi-subtitle">
-    Share a few details and our team will follow up with tailored rental income options for your property in Punta Cana / Cap Cana.
-  </p>
+<div id="pi-extra-fields">
 
-  <form id="pi-intake-form" novalidate>
+  <div class="pi-field">
+    <label for="pi-property-location">Property location <span class="pi-required">*</span></label>
+    <select id="pi-property-location" data-required="true">
+      <option value="" disabled selected>Select a location</option>
 
-    <div class="pi-row">
-      <div class="pi-field">
-        <label for="pi-first-name">First name <span class="pi-required">*</span></label>
-        <input type="text" id="pi-first-name" name="first_name" autocomplete="given-name" required>
-        <div class="pi-error-msg">Please enter your first name.</div>
-      </div>
-      <div class="pi-field">
-        <label for="pi-last-name">Last name <span class="pi-required">*</span></label>
-        <input type="text" id="pi-last-name" name="last_name" autocomplete="family-name" required>
-        <div class="pi-error-msg">Please enter your last name.</div>
-      </div>
-    </div>
+      <optgroup label="CAP CANA (Cap Cana, Juanillo, Punta Espada)">
+        <option value="Cap Cana - general">Cap Cana — general</option>
+        <option value="Las Iguanas">Las Iguanas</option>
+        <option value="Marina Cap Cana">Marina Cap Cana</option>
+        <option value="Juanillo">Juanillo</option>
+        <option value="Punta Espada">Punta Espada</option>
+      </optgroup>
 
+      <optgroup label="PUNTA CANA (Puntacana Resort, Village, Downtown)">
+        <option value="Punta Cana Village">Punta Cana Village</option>
+        <option value="Puntacana Resort & Club">Puntacana Resort &amp; Club</option>
+        <option value="Tortuga Bay">Tortuga Bay</option>
+        <option value="Downtown Punta Cana">Downtown Punta Cana</option>
+      </optgroup>
+
+      <optgroup label="BÁVARO (Cocotal, Cana Bay, Vista Cana, Los Corales, Cortecito)">
+        <option value="Bavaro - general">Bávaro — general</option>
+        <option value="Cocotal Golf & Country Club">Cocotal Golf &amp; Country Club</option>
+        <option value="Cana Bay">Cana Bay</option>
+        <option value="Vista Cana">Vista Cana</option>
+        <option value="White Sands">White Sands</option>
+        <option value="Pueblo Bavaro">Pueblo Bávaro</option>
+        <option value="Brisas de Bavaro">Brisas de Bávaro</option>
+        <option value="Los Corales">Los Corales</option>
+        <option value="El Cortecito">El Cortecito</option>
+        <option value="Arena Gorda">Arena Gorda</option>
+      </optgroup>
+
+      <optgroup label="NORTH COAST [COSTA NORTE] (Uvero Alto, Macao)">
+        <option value="Uvero Alto">Uvero Alto</option>
+        <option value="Macao">Macao</option>
+      </optgroup>
+
+      <optgroup label="OTHER [OTRA ZONA]">
+        <option value="Veron">Verón</option>
+        <option value="Other Punta Cana area">Other Punta Cana area</option>
+        <option value="Elsewhere in the Dominican Republic">Elsewhere in the Dominican Republic</option>
+      </optgroup>
+    </select>
+    <div class="pi-error-msg">Please select your property's location.</div>
+  </div>
+
+  <div class="pi-field">
+    <label for="pi-development">Development / building name <span class="pi-required">*</span></label>
+    <input type="text" id="pi-development" placeholder="e.g. Vermare, Las Iguanas, Cocotal Palmas" data-required="true">
+    <div class="pi-error-msg">Please enter the development or building name.</div>
+  </div>
+
+  <div class="pi-field">
+    <label for="pi-unit">Unit or villa number <span class="pi-optional">(optional)</span></label>
+    <input type="text" id="pi-unit">
+  </div>
+
+  <div class="pi-row">
     <div class="pi-field">
-      <label for="pi-email">Email <span class="pi-required">*</span></label>
-      <input type="email" id="pi-email" name="email" autocomplete="email" required>
-      <div class="pi-error-msg">Please enter a valid email address.</div>
-    </div>
-
-    <div class="pi-field">
-      <label for="pi-whatsapp">WhatsApp number <span class="pi-required">*</span></label>
-      <input type="tel" id="pi-whatsapp" name="phone" autocomplete="tel" placeholder="+1 809 555 5555" required>
-      <div class="pi-hint">Include country code.</div>
-      <div class="pi-error-msg">Please enter a valid WhatsApp number, including country code.</div>
-    </div>
-
-    <div class="pi-field">
-      <label for="pi-property-location">Property location <span class="pi-required">*</span></label>
-      <select id="pi-property-location" name="property_location" required>
-        <option value="" disabled selected>Select a location</option>
-
-        <optgroup label="CAP CANA (Cap Cana, Juanillo, Punta Espada)">
-          <option value="Cap Cana - general">Cap Cana — general</option>
-          <option value="Las Iguanas">Las Iguanas</option>
-          <option value="Marina Cap Cana">Marina Cap Cana</option>
-          <option value="Juanillo">Juanillo</option>
-          <option value="Punta Espada">Punta Espada</option>
-        </optgroup>
-
-        <optgroup label="PUNTA CANA (Puntacana Resort, Village, Downtown)">
-          <option value="Punta Cana Village">Punta Cana Village</option>
-          <option value="Puntacana Resort & Club">Puntacana Resort &amp; Club</option>
-          <option value="Tortuga Bay">Tortuga Bay</option>
-          <option value="Downtown Punta Cana">Downtown Punta Cana</option>
-        </optgroup>
-
-        <optgroup label="BÁVARO (Cocotal, Cana Bay, Vista Cana, Los Corales, Cortecito)">
-          <option value="Bavaro - general">Bávaro — general</option>
-          <option value="Cocotal Golf & Country Club">Cocotal Golf &amp; Country Club</option>
-          <option value="Cana Bay">Cana Bay</option>
-          <option value="Vista Cana">Vista Cana</option>
-          <option value="White Sands">White Sands</option>
-          <option value="Pueblo Bavaro">Pueblo Bávaro</option>
-          <option value="Brisas de Bavaro">Brisas de Bávaro</option>
-          <option value="Los Corales">Los Corales</option>
-          <option value="El Cortecito">El Cortecito</option>
-          <option value="Arena Gorda">Arena Gorda</option>
-        </optgroup>
-
-        <optgroup label="NORTH COAST [COSTA NORTE] (Uvero Alto, Macao)">
-          <option value="Uvero Alto">Uvero Alto</option>
-          <option value="Macao">Macao</option>
-        </optgroup>
-
-        <optgroup label="OTHER [OTRA ZONA]">
-          <option value="Veron">Verón</option>
-          <option value="Other Punta Cana area">Other Punta Cana area</option>
-          <option value="Elsewhere in the Dominican Republic">Elsewhere in the Dominican Republic</option>
-        </optgroup>
-      </select>
-      <div class="pi-error-msg">Please select your property's location.</div>
-    </div>
-
-    <div class="pi-field">
-      <label for="pi-development">Development / building name <span class="pi-required">*</span></label>
-      <input type="text" id="pi-development" name="development_name" placeholder="e.g. Vermare, Las Iguanas, Cocotal Palmas" required>
-      <div class="pi-error-msg">Please enter the development or building name.</div>
-    </div>
-
-    <div class="pi-field">
-      <label for="pi-unit">Unit or villa number <span class="pi-optional">(optional)</span></label>
-      <input type="text" id="pi-unit" name="unit_number">
-    </div>
-
-    <div class="pi-row">
-      <div class="pi-field">
-        <label for="pi-bedrooms">Bedrooms <span class="pi-required">*</span></label>
-        <select id="pi-bedrooms" name="bedrooms" required>
-          <option value="" disabled selected>Select</option>
-          <option value="Studio">Studio</option>
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-          <option value="5">5</option>
-          <option value="6+">6+</option>
-        </select>
-        <div class="pi-error-msg">Please select the number of bedrooms.</div>
-      </div>
-
-      <div class="pi-field">
-        <label for="pi-property-type">Property type <span class="pi-required">*</span></label>
-        <select id="pi-property-type" name="property_type" required>
-          <option value="" disabled selected>Select</option>
-          <option value="Apartment/Condo">Apartment / Condo</option>
-          <option value="Villa">Villa</option>
-          <option value="Townhouse">Townhouse</option>
-          <option value="Other">Other</option>
-        </select>
-        <div class="pi-error-msg">Please select a property type.</div>
-      </div>
-    </div>
-
-    <!--
-      CONFIRM WITH CLIENT: "Current situation" is the segment driver referenced
-      in the form spec (§2) but its option list wasn't included with the
-      spec details provided. The options below are a placeholder set based on
-      the rest of the form (short-term rental / property management intake) —
-      replace with the actual values before this goes live, since this field
-      is used to route leads into different GHL workflows.
-    -->
-    <div class="pi-field">
-      <label for="pi-current-situation">Current situation <span class="pi-required">*</span></label>
-      <select id="pi-current-situation" name="current_situation" required>
+      <label for="pi-bedrooms">Bedrooms <span class="pi-required">*</span></label>
+      <select id="pi-bedrooms" data-required="true">
         <option value="" disabled selected>Select</option>
-        <option value="Not currently renting">Not currently renting out my property</option>
-        <option value="Self-managing">Currently self-managing short-term rentals</option>
-        <option value="With another manager">Currently using another property management company</option>
-        <option value="New owner">Just purchased / about to close on a property</option>
-        <option value="Considering purchase">Still considering purchasing a property</option>
+        <option value="Studio">Studio</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6+">6+</option>
       </select>
-      <div class="pi-error-msg">Please select your current situation.</div>
+      <div class="pi-error-msg">Please select the number of bedrooms.</div>
     </div>
 
     <div class="pi-field">
-      <label for="pi-nightly-rate">Current nightly rate <span class="pi-optional">(optional, USD)</span></label>
-      <input type="text" id="pi-nightly-rate" name="current_nightly_rate" placeholder="e.g. 150">
+      <label for="pi-property-type">Property type <span class="pi-required">*</span></label>
+      <select id="pi-property-type" data-required="true">
+        <option value="" disabled selected>Select</option>
+        <option value="Apartment/Condo">Apartment / Condo</option>
+        <option value="Villa">Villa</option>
+        <option value="Townhouse">Townhouse</option>
+        <option value="Other">Other</option>
+      </select>
+      <div class="pi-error-msg">Please select a property type.</div>
     </div>
+  </div>
 
-    <div class="pi-field">
-      <label for="pi-notes">Anything else we should know? <span class="pi-optional">(optional)</span></label>
-      <textarea id="pi-notes" name="additional_notes"></textarea>
-    </div>
+  <div class="pi-field">
+    <label for="pi-current-situation">Current situation <span class="pi-required">*</span></label>
+    <select id="pi-current-situation" data-required="true">
+      <option value="" disabled selected>Select</option>
+      <option value="Not currently renting">Not currently renting out my property</option>
+      <option value="Self-managing">Currently self-managing short-term rentals</option>
+      <option value="With another manager">Currently using another property management company</option>
+      <option value="New owner">Just purchased / about to close on a property</option>
+      <option value="Considering purchase">Still considering purchasing a property</option>
+    </select>
+    <div class="pi-error-msg">Please select your current situation.</div>
+  </div>
 
-    <!--
-      CONFIRM WITH CLIENT: exact consent / opt-in copy and Privacy Policy
-      link referenced as "§3" in the form spec weren't included with the
-      details provided — replace the placeholder wording below with the
-      approved legal copy before this goes live.
-    -->
-    <div class="pi-checkbox-field">
-      <input type="checkbox" id="pi-consent" name="privacy_consent" value="yes" required>
-      <label for="pi-consent">
-        I agree to the <a href="#" target="_blank" rel="noopener">Privacy Policy</a> and consent to be contacted about my inquiry by email, phone, or WhatsApp. <span class="pi-required">*</span>
-      </label>
-    </div>
-    <div class="pi-field" style="margin-top:-10px;">
-      <div class="pi-error-msg" id="pi-consent-error">Please accept the privacy and contact consent to continue.</div>
-    </div>
+  <div class="pi-field">
+    <label for="pi-nightly-rate">Current nightly rate <span class="pi-optional">(optional, USD)</span></label>
+    <input type="text" id="pi-nightly-rate" placeholder="e.g. 150">
+  </div>
 
-    <div class="pi-checkbox-field">
-      <input type="checkbox" id="pi-whatsapp-optin" name="whatsapp_optin" value="yes">
-      <label for="pi-whatsapp-optin">
-        I'd also like to receive updates and offers via WhatsApp.
-      </label>
-    </div>
+  <div class="pi-field">
+    <label for="pi-notes">Anything else we should know? <span class="pi-optional">(optional)</span></label>
+    <textarea id="pi-notes"></textarea>
+  </div>
 
-    <button type="submit" id="pi-submit-btn">Submit</button>
-    <div id="pi-form-status"></div>
-  </form>
+  <div class="pi-checkbox-field">
+    <input type="checkbox" id="pi-consent">
+    <label for="pi-consent">
+      I agree to the <a href="#" target="_blank" rel="noopener">Privacy Policy</a> and consent to be contacted about my inquiry by email, phone, or WhatsApp. <span class="pi-required">*</span>
+    </label>
+  </div>
+  <div class="pi-field">
+    <div class="pi-error-msg" id="pi-consent-error">Please accept the privacy and contact consent to continue.</div>
+  </div>
+
+  <div class="pi-checkbox-field">
+    <input type="checkbox" id="pi-whatsapp-optin">
+    <label for="pi-whatsapp-optin">
+      I'd also like to receive updates and offers via WhatsApp.
+    </label>
+  </div>
+
 </div>
 
 <script>
 (function () {
-  // Replace with the GHL Inbound Webhook URL (Workflows > Inbound Webhook trigger).
-  var GHL_WEBHOOK_URL = "https://services.leadconnectorhq.com/hooks/REPLACE_WITH_YOUR_WEBHOOK_ID";
+  // Fill these in with the hidden Custom Field input `id`s from step 3
+  // above. Anything left blank is skipped (its value never reaches GHL).
+  var FIELD_ID_MAP = {
+    property_location: "",
+    development_name: "",
+    unit_number: "",
+    bedrooms: "",
+    property_type: "",
+    current_situation: "",
+    current_nightly_rate: "",
+    additional_notes: "",
+    privacy_consent: "",
+    whatsapp_optin: ""
+  };
 
-  var form = document.getElementById("pi-intake-form");
-  var statusEl = document.getElementById("pi-form-status");
-  var submitBtn = document.getElementById("pi-submit-btn");
+  var wrapper = document.getElementById("pi-extra-fields");
+  var form = wrapper.closest("form");
   var consentField = document.getElementById("pi-consent");
   var consentErrorWrapper = document.getElementById("pi-consent-error").closest(".pi-field");
 
-  var whatsappPattern = /^\+?[0-9\s\-()]{7,20}$/;
+  var visibleFields = {
+    property_location: document.getElementById("pi-property-location"),
+    development_name: document.getElementById("pi-development"),
+    unit_number: document.getElementById("pi-unit"),
+    bedrooms: document.getElementById("pi-bedrooms"),
+    property_type: document.getElementById("pi-property-type"),
+    current_situation: document.getElementById("pi-current-situation"),
+    current_nightly_rate: document.getElementById("pi-nightly-rate"),
+    additional_notes: document.getElementById("pi-notes")
+  };
 
   function setFieldError(field, hasError) {
-    var wrapper = field.closest(".pi-field");
-    if (!wrapper) return;
-    wrapper.classList.toggle("pi-has-error", hasError);
+    var fieldWrapper = field.closest(".pi-field");
+    if (!fieldWrapper) return;
+    fieldWrapper.classList.toggle("pi-has-error", hasError);
     field.classList.toggle("pi-invalid", hasError);
   }
 
   function validate() {
     var valid = true;
 
-    var requiredFields = form.querySelectorAll("[required]:not(#pi-consent)");
-    requiredFields.forEach(function (field) {
+    wrapper.querySelectorAll("[data-required='true']").forEach(function (field) {
       var fieldValid = field.value.trim() !== "";
-      if (fieldValid && field.type === "email") {
-        fieldValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(field.value.trim());
-      }
-      if (fieldValid && field.id === "pi-whatsapp") {
-        fieldValid = whatsappPattern.test(field.value.trim());
-      }
       setFieldError(field, !fieldValid);
       if (!fieldValid) valid = false;
     });
@@ -422,48 +322,40 @@
     return valid;
   }
 
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
-    statusEl.className = "";
-    statusEl.textContent = "";
+  function pushToHiddenField(id, value) {
+    if (!id) return;
+    var hiddenInput = document.getElementById(id);
+    if (!hiddenInput) return;
+    hiddenInput.value = value;
+    hiddenInput.dispatchEvent(new Event("input", { bubbles: true }));
+    hiddenInput.dispatchEvent(new Event("change", { bubbles: true }));
+  }
 
-    if (!validate()) {
-      statusEl.className = "pi-status-error";
-      statusEl.textContent = "Please fix the highlighted fields and try again.";
-      return;
-    }
-
-    var payload = {};
-    new FormData(form).forEach(function (value, key) {
-      payload[key] = value;
+  function syncHiddenFields() {
+    Object.keys(visibleFields).forEach(function (key) {
+      pushToHiddenField(FIELD_ID_MAP[key], visibleFields[key].value.trim());
     });
-    payload.whatsapp_optin = document.getElementById("pi-whatsapp-optin").checked ? "yes" : "no";
+    pushToHiddenField(FIELD_ID_MAP.privacy_consent, consentField.checked ? "yes" : "no");
+    pushToHiddenField(FIELD_ID_MAP.whatsapp_optin, document.getElementById("pi-whatsapp-optin").checked ? "yes" : "no");
+  }
 
-    submitBtn.disabled = true;
-    submitBtn.textContent = "Submitting...";
+  if (form) {
+    // Capture-phase listener on document runs before GHL's own submit
+    // handler on the form, so an invalid state can block it outright.
+    document.addEventListener("submit", function (e) {
+      if (e.target !== form) return;
+      if (!validate()) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return;
+      }
+      syncHiddenFields();
+    }, true);
+  }
 
-    fetch(GHL_WEBHOOK_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    })
-      .then(function (res) {
-        if (!res.ok) throw new Error("Request failed");
-        form.reset();
-        statusEl.className = "pi-status-success";
-        statusEl.textContent = "Thanks! We've received your details and will be in touch shortly.";
-      })
-      .catch(function () {
-        statusEl.className = "pi-status-error";
-        statusEl.textContent = "Something went wrong submitting the form. Please try again or contact us directly.";
-      })
-      .finally(function () {
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Submit";
-      });
-  });
+  wrapper.addEventListener("change", syncHiddenFields);
+  wrapper.addEventListener("input", syncHiddenFields);
+  consentField.addEventListener("change", syncHiddenFields);
+  document.getElementById("pi-whatsapp-optin").addEventListener("change", syncHiddenFields);
 })();
 </script>
-
-</body>
-</html>
