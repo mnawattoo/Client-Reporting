@@ -2,7 +2,8 @@
   SETUP:
   1. In GHL, create a Workflow with an "Inbound Webhook" trigger (or use an
      existing one) and copy its URL.
-  2. Paste that URL as GHL_WEBHOOK_URL near the top of the <script> below.
+  2. Paste that URL as GHL_WEBHOOK_URL near the top of the JavaScript block
+     below.
   3. In the Form Builder, drag a single "Custom HTML" field onto an
      otherwise empty form and paste this entire file into it. No other
      native fields (First Name, Email, etc.) are needed — everything is
@@ -169,25 +170,25 @@
   <div class="pi-row">
     <div class="pi-field">
       <label for="pi-first-name">First name <span class="pi-required">*</span></label>
-      <input type="text" id="pi-first-name" autocomplete="given-name" data-required="true">
+      <input type="text" id="pi-first-name" autocomplete="given-name" data-required="true" />
       <div class="pi-error-msg">Please enter your first name.</div>
     </div>
     <div class="pi-field">
       <label for="pi-last-name">Last name <span class="pi-required">*</span></label>
-      <input type="text" id="pi-last-name" autocomplete="family-name" data-required="true">
+      <input type="text" id="pi-last-name" autocomplete="family-name" data-required="true" />
       <div class="pi-error-msg">Please enter your last name.</div>
     </div>
   </div>
 
   <div class="pi-field">
     <label for="pi-email">Email <span class="pi-required">*</span></label>
-    <input type="email" id="pi-email" autocomplete="email" data-required="true">
+    <input type="email" id="pi-email" autocomplete="email" data-required="true" />
     <div class="pi-error-msg">Please enter a valid email address.</div>
   </div>
 
   <div class="pi-field">
     <label for="pi-whatsapp">WhatsApp number <span class="pi-required">*</span></label>
-    <input type="tel" id="pi-whatsapp" autocomplete="tel" placeholder="+1 809 555 5555" data-required="true">
+    <input type="tel" id="pi-whatsapp" autocomplete="tel" placeholder="+1 809 555 5555" data-required="true" />
     <div class="pi-hint">Include country code.</div>
     <div class="pi-error-msg">Please enter a valid WhatsApp number, including country code.</div>
   </div>
@@ -241,13 +242,13 @@
 
   <div class="pi-field">
     <label for="pi-development">Development / building name <span class="pi-required">*</span></label>
-    <input type="text" id="pi-development" placeholder="e.g. Vermare, Las Iguanas, Cocotal Palmas" data-required="true">
+    <input type="text" id="pi-development" placeholder="e.g. Vermare, Las Iguanas, Cocotal Palmas" data-required="true" />
     <div class="pi-error-msg">Please enter the development or building name.</div>
   </div>
 
   <div class="pi-field">
     <label for="pi-unit">Unit or villa number <span class="pi-optional">(optional)</span></label>
-    <input type="text" id="pi-unit">
+    <input type="text" id="pi-unit" />
   </div>
 
   <div class="pi-row">
@@ -294,7 +295,7 @@
 
   <div class="pi-field">
     <label for="pi-nightly-rate">Current nightly rate <span class="pi-optional">(optional, USD)</span></label>
-    <input type="text" id="pi-nightly-rate" placeholder="e.g. 150">
+    <input type="text" id="pi-nightly-rate" placeholder="e.g. 150" />
   </div>
 
   <div class="pi-field">
@@ -303,7 +304,7 @@
   </div>
 
   <div class="pi-checkbox-field">
-    <input type="checkbox" id="pi-consent">
+    <input type="checkbox" id="pi-consent" />
     <label for="pi-consent">
       I agree that Vivo Hospitality &amp; Property Management may store the information I've provided and contact me about my property. I can request deletion of my information at any time by writing to <a href="mailto:host@vivo-hospitality.com">host@vivo-hospitality.com</a>. See our <a href="#" target="_blank" rel="noopener">Privacy Policy</a>. <span class="pi-required">*</span>
     </label>
@@ -313,7 +314,7 @@
   </div>
 
   <div class="pi-checkbox-field">
-    <input type="checkbox" id="pi-whatsapp-optin">
+    <input type="checkbox" id="pi-whatsapp-optin" />
     <label for="pi-whatsapp-optin">
       I'd like to receive my estimate and follow-up messages by WhatsApp
     </label>
@@ -325,7 +326,7 @@
 
 <script>
 (function () {
-  // Replace with your GHL Inbound Webhook URL (Workflows > Inbound Webhook trigger).
+  // Replace with your GHL Inbound Webhook URL (Workflows: Inbound Webhook trigger).
   var GHL_WEBHOOK_URL = "https://services.leadconnectorhq.com/hooks/REPLACE_WITH_YOUR_WEBHOOK_ID";
 
   var wrapper = document.getElementById("pi-form-wrapper");
