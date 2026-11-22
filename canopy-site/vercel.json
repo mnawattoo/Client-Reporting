@@ -1,0 +1,171 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/emerald-coast-vacation-rentals/:path*",
+      "destination": "/vacation-rentals",
+      "permanent": true
+    },
+    {
+      "source": "/vacation-rental-search/",
+      "destination": "/vacation-rentals",
+      "permanent": true
+    },
+    {
+      "source": "/vacation-rental-search/here-comes-the-sun/",
+      "destination": "/rentals/here-comes-the-sun",
+      "permanent": true
+    },
+    {
+      "source": "/vacation-rental-search/my-happy-place/",
+      "destination": "/rentals/my-happy-place",
+      "permanent": true
+    },
+    {
+      "source": "/vacation-rental-search/the-pearl-of-st-andrews-bay/",
+      "destination": "/rentals/the-pearl-of-st-andrews-bay",
+      "permanent": true
+    },
+    {
+      "source": "/vacation-rental-search/the-starfish/",
+      "destination": "/rentals/the-starfish",
+      "permanent": true
+    },
+    {
+      "source": "/vacation-rental-search/the-celadon-escape/",
+      "destination": "/rentals/the-celadon-escape",
+      "permanent": true
+    },
+    {
+      "source": "/blog/5-reasons-book-your-next-vacation-directly-through-us/",
+      "destination": "/blog/5-reasons-book-your-next-vacation-directly-through-us",
+      "permanent": true
+    },
+    {
+      "source": "/blog/consider-beachfront-airbnb-your-next-vacation/",
+      "destination": "/blog/consider-beachfront-airbnb-your-next-vacation",
+      "permanent": true
+    },
+    {
+      "source": "/blog/4-tips-choosing-beachfront-vacation-rentals/",
+      "destination": "/blog/4-tips-choosing-beachfront-vacation-rentals",
+      "permanent": true
+    },
+    {
+      "source": "/blog/why-vacation-rentals-are-great-families/",
+      "destination": "/blog/why-vacation-rentals-are-great-families",
+      "permanent": true
+    },
+    {
+      "source": "/blog/take-advantage-vacation-rental-services-amazing-stay/",
+      "destination": "/blog/take-advantage-vacation-rental-services-amazing-stay",
+      "permanent": true
+    },
+    {
+      "source": "/blog/reasons-book-directly-through-vacation-home-rental-agencies/",
+      "destination": "/blog/reasons-book-directly-through-vacation-home-rental-agencies",
+      "permanent": true
+    },
+    {
+      "source": "/about-us/",
+      "destination": "/about-us",
+      "permanent": true
+    },
+    {
+      "source": "/contact-us/",
+      "destination": "/contact-us",
+      "permanent": true
+    },
+    {
+      "source": "/property-management/",
+      "destination": "/property-management",
+      "permanent": true
+    },
+    {
+      "source": "/blog/",
+      "destination": "/blog",
+      "permanent": true
+    },
+    {
+      "source": "/terms-and-conditions/",
+      "destination": "/terms-and-conditions",
+      "permanent": true
+    },
+    {
+      "source": "/privacy-policy/",
+      "destination": "/privacy-policy",
+      "permanent": true
+    },
+    {
+      "source": "/about-us-2/",
+      "destination": "/about-us",
+      "permanent": true
+    },
+    {
+      "source": "/contact-us-2/",
+      "destination": "/contact-us",
+      "permanent": true
+    },
+    {
+      "source": "/homepage/",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/special-offers/",
+      "destination": "/special-offers",
+      "permanent": true
+    },
+    {
+      "source": "/single-discount/",
+      "destination": "/special-offers",
+      "permanent": true
+    },
+    {
+      "source": "/things-to-do/",
+      "destination": "/things-to-do",
+      "permanent": true
+    },
+    {
+      "source": "/activities/",
+      "destination": "/things-to-do",
+      "permanent": true
+    },
+    {
+      "source": "/events/",
+      "destination": "/things-to-do",
+      "permanent": true
+    },
+    {
+      "source": "/homeowner-acquisition/",
+      "destination": "/homeowner-acquisition",
+      "permanent": true
+    },
+    {
+      "source": "/favorites/",
+      "destination": "/favorites",
+      "permanent": true
+    },
+    {
+      "source": "/booking-request/",
+      "destination": "/contact-us",
+      "permanent": true
+    },
+    {
+      "source": "/custom-quote/",
+      "destination": "/contact-us",
+      "permanent": true
+    },
+    {
+      "source": "/blog-categories/booking/",
+      "destination": "/blog",
+      "permanent": true
+    },
+    {
+      "source": "/index/",
+      "destination": "/",
+      "permanent": true
+    }
+  ]
+}

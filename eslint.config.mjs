@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Static Canopy Vacations site (deployed as its own Vercel project):
+    "canopy-site/**",
   ]),
 ]);
 
