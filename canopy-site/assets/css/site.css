@@ -668,7 +668,9 @@ html.has-cursor, html.has-cursor a, html.has-cursor button, html.has-cursor summ
 .showcase__copy .wrap { max-width: var(--maxw); }
 .showcase__place { display: inline-flex; align-items: center; gap: .6rem; font-size: .86rem; letter-spacing: .04em; color: var(--shell-76); }
 .showcase__place::before { content: ""; width: 26px; height: 1px; background: var(--emerald); }
-.showcase__name { margin-top: 1rem; max-width: 12ch; font-family: var(--f-display); font-weight: 500; font-size: clamp(3rem, 7.4vw, 8rem); line-height: .95; letter-spacing: -.03em; }
+.showcase__name { margin-top: 1rem; max-width: 12ch; font-family: var(--f-display); font-weight: 600; font-size: clamp(3rem, 7.4vw, 8rem); line-height: .95; letter-spacing: -.03em;
+  text-shadow: 0 2px 4px rgba(5, 11, 13, .55), 0 6px 34px rgba(5, 11, 13, .7); }
+.showcase__name::after { content: ""; display: block; width: clamp(4rem, 9vw, 8rem); height: 5px; margin-top: clamp(.9rem, 1.6vw, 1.5rem); border-radius: 3px; background: var(--coral); box-shadow: 0 2px 14px rgba(5, 11, 13, .45); }
 .showcase__tag { margin-top: 1.2rem; max-width: 46ch; font-size: var(--t-lead); font-weight: 300; color: var(--shell-76); }
 .showcase__facts { display: flex; gap: clamp(1.4rem, 3.5vw, 3.2rem); margin-top: 1.8rem; flex-wrap: wrap; }
 .showcase__facts div { display: grid; }
